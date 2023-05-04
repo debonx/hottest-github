@@ -7,13 +7,14 @@ export interface RepositoryProps {
     isLoading?: boolean
     isError?: boolean
 }
-  
+
 export interface Repository {
     id: number;
     full_name: string;
     html_url: string;
     description: string;
     stargazers_count: number;
+    language: string;
     node_id?: string;
     name?: string;
     private?: boolean;
@@ -66,7 +67,6 @@ export interface Repository {
     homepage?: string;
     size?: number;
     watchers_count?: number;
-    language?: string;
     has_issues?: boolean;
     has_projects?: boolean;
     has_downloads?: boolean;
@@ -90,6 +90,8 @@ export interface Repository {
     default_branch?: string;
     score?: number;
 }
+
+export type RepositoryKeys = keyof Repository;
 
 export interface Owner {
     login: string

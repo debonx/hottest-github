@@ -1,4 +1,4 @@
-import { Repository } from '@/components/repository-list/repository-list.types';
+import { Repository, RepositoryKeys } from '@/components/repository-list/repository-list.types';
 import axios from 'axios';
 import { useLocalStorageState } from 'react-localstorage-hooks';
 
@@ -96,13 +96,31 @@ export const fetchRepositories = async (): Promise<RepositoryResponseProcessed> 
         `https://api.github.com/search/repositories?${params}`
     );
 
+    const processedItems = getItemsWithOnlyRequiredFields(res.data.items);
+
     return {
-        items: getRepositoriesObjectById(res.data.items),
+        items: getRepositoriesObjectById(processedItems),
         items_ids_by_language: getItemsIdsByLanguage(res.data.items),
         total_count: res.data.total_count,
         incomplete_results: res.data.incomplete_results,
     };
 };
+
+export const getItemsWithOnlyRequiredFields = (items: Repository[]): Repository[] => {
+    const requiredFields = ['id', 'full_name', 'description', 'language', 'stargazers_count', 'forks_count', 'html_url', 'owner'];
+
+    const processedItems = items.map((item) => {
+        const processedItem = requiredFields.reduce((acc: any, field) => {
+            acc[field] = item[field as RepositoryKeys];
+            return acc;
+        }, {} as Repository);
+
+        return processedItem;
+    });
+    
+    return processedItems;
+};
+
 
 
 export const getFavoritedRepositories = (repositories: RepositoryResponseProcessed, favoritesIds: Record<number, number>): RepositoryResponseProcessed => {

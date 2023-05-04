@@ -24,11 +24,10 @@ export default function Home() {
           <RepositoryTabs />
         </Box>
       </Container>
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-        <BottomNavigation sx={{ height: '40px', padding: '10px' }}>
+      <Box component={'div'} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '40px', padding: '10px', backgroundColor: 'black', color: 'white', textAlign: 'center' }} 
+      >
           <Box component={'span'}>{`Made with ❤️ by `}<Link href="https://github.com/debonx" target="_blank">{'debonx'}</Link></Box>
-        </BottomNavigation>
-      </Paper>
+      </Box>
     </>
   )
 }
