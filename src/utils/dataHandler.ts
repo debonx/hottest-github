@@ -124,10 +124,13 @@ export const getItemsWithOnlyRequiredFields = (items: Repository[]): Repository[
 
 
 export const getFavoritedRepositories = (repositories: RepositoryResponseProcessed, favoritesIds: Record<number, number>): RepositoryResponseProcessed => {
-    const favorites = Object.keys(favoritesIds).reduce((acc, id) => {
-        acc[Number(id)] = repositories.items[Number(id)];
-        return acc;
-    }, {} as RepositoriesById);
+    let favorites = {} as RepositoriesById;
+    if (favoritesIds) {
+        favorites = Object.keys(favoritesIds).reduce((acc, id) => {
+            acc[Number(id)] = repositories.items[Number(id)];
+            return acc;
+        }, {} as RepositoriesById);
+    }
 
     return {
         ...repositories,

@@ -23,14 +23,15 @@ export function RepositoryItem({ id, full_name, html_url, description, stargazer
   
       const updatedFavorites = { ...favorites };
   
-      if (favorites[id]) {
+      if (favorites && favorites[id]) {
         delete updatedFavorites[id];
+        setIsFavorite(!favorites[id]);
       } else {
         updatedFavorites[id] = 1;
+        setIsFavorite(!updatedFavorites[id]);
       }
   
       setFavorites(updatedFavorites);
-      setIsFavorite(!favorites[id]);
     };
       
   

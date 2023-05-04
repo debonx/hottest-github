@@ -14,4 +14,8 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+-----
+
+Try it out at [https://hottest-github.vercel.app/](https://hottest-github.vercel.app/) and give some :heart: if you like it.
+
 Cheers :beers:
