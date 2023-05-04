@@ -1,9 +1,9 @@
 import Head from 'next/head'
-import { Inter } from 'next/font/google'
-import { AppBar, Box, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
-import NavigationTabs from '@/components/navigation-tabs/navigation-tabs'
-
-const inter = Inter({ subsets: ['latin'] })
+import { BottomNavigation, Box, Container, Paper, Typography } from '@mui/material'
+import RepositoryTabs from '@/components/repository-tabs/repository-tabs'
+import { QueryClient, dehydrate } from '@tanstack/react-query'
+import { fetchRepositories } from '@/utils/dataHandler'
+import Link from 'next/dist/client/link'
 
 export default function Home() {
   return (
@@ -21,13 +21,30 @@ export default function Home() {
           </Typography>
         </Box>
         <Box component='main' role='main'>
-          <NavigationTabs />
-        </Box>
-        <Box component='footer'>
-          <p>Made with love by <a href="" target='_blank'>debonx</a></p>
+          <RepositoryTabs />
         </Box>
       </Container>
+      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+        <BottomNavigation sx={{ height: '40px', padding: '10px' }}>
+          <Box component={'span'}>{`Made with ❤️ by `}<Link href="https://github.com/debonx" target="_blank">{'debonx'}</Link></Box>
+        </BottomNavigation>
+      </Paper>
     </>
   )
+}
+
+export const getStaticProps = async () => {
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ['repositories'], 
+    queryFn: () => fetchRepositories()
+  });
+
+  return {
+    props: {
+      dehydratedState: dehydrate(queryClient),
+    }
+  }
 }
 
