@@ -9,6 +9,7 @@ import { RepositoryResponseProcessed, fetchRepositories, getFavoritedRepositorie
 import { useQuery } from '@tanstack/react-query';
 import { useLocalStorageState } from 'react-localstorage-hooks';
 import { useEffect, useState } from 'react';
+import ErrorBoundary from '../error-boundary/error-boundary';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -20,18 +21,20 @@ function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
   return (
-    <Box component={'div'}
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      sx={{ padding: '20px 0 20px' }}
-      {...other}
-    >
-      {value === index && (
-        <Typography>{children}</Typography>
-      )}
-    </Box>
+    <ErrorBoundary>
+      <Box component={'div'}
+        role="tabpanel"
+        hidden={value !== index}
+        id={`tabpanel-${index}`}
+        aria-labelledby={`tab-${index}`}
+        sx={{ padding: '20px 0 20px' }}
+        {...other}
+      >
+        {value === index && (
+          <Typography>{children}</Typography>
+        )}
+      </Box>
+    </ErrorBoundary>
   );
 }
 
@@ -45,7 +48,12 @@ export default function RepositoryTabs() {
     setTabsValue(newTabsValue);
   };
 
-  const { data: repositories, isLoading: isLoadingRepositories, isError: isErrorRepositories } = useQuery(['repositories'], () => fetchRepositories());
+  const { data: repositories, isLoading: isLoadingRepositories, isError: isErrorRepositories } = useQuery({
+    queryKey: ['repositories'], 
+    queryFn: () => fetchRepositories(),
+    useErrorBoundary: true,
+    retry: 3
+  });
   
   useEffect(() => {
     const newFavoritedRepositories = getFavoritedRepositories(repositories ?? {} as RepositoryResponseProcessed, favoritesIds);
