@@ -6,10 +6,11 @@ import Box from '@mui/material/Box';
 import { a11yProps } from './repository-tabs.helpers';
 import { RepositoryList } from '../repository-list/repository-list';
 import { RepositoryResponseProcessed, fetchRepositories, getFavoritedRepositories } from '@/utils/dataHandler';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useLocalStorageState } from 'react-localstorage-hooks';
 import { useEffect, useState } from 'react';
 import ErrorBoundary from '../error-boundary/error-boundary';
+import Button from '@mui/material/Button';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -48,20 +49,34 @@ export default function RepositoryTabs() {
     setTabsValue(newTabsValue);
   };
 
-  const { data: repositories, isLoading: isLoadingRepositories, isError: isErrorRepositories } = useQuery({
-    queryKey: ['repositories'], 
-    queryFn: () => fetchRepositories(),
-    useErrorBoundary: true,
-    retry: 3
-  });
+  const {
+    isLoading: isLoadingRepositories,
+    isError: isErrorRepositories,
+    data: repositoriesData,
+    fetchNextPage,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage
+} = useInfiniteQuery(['repositories'], fetchRepositories, {
+    getNextPageParam: (repositories, pages) => {
+        console.log(repositories)
+        return repositories?.page ? repositories?.page + 1 : 1;
+    }
+})
+
+const repositories = repositoriesData?.pages?.length 
+? repositoriesData.pages.reduce((all, page) => ({ ...all, items: { ...all.items, ...page.items } }), {} as RepositoryResponseProcessed)
+: undefined;
+
   
-  useEffect(() => {
-    const newFavoritedRepositories = getFavoritedRepositories(repositories ?? {} as RepositoryResponseProcessed, favoritesIds);
-    setFavoritedRepositories(newFavoritedRepositories)
-  }, [favoritesIds, repositories])
+useEffect(() => {
+  const newFavoritedRepositories = getFavoritedRepositories(repositories ?? {} as RepositoryResponseProcessed, favoritesIds);
+  setFavoritedRepositories(newFavoritedRepositories)
+}, [favoritesIds, repositories])
+
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', paddingBottom: '40px' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabsValue} onChange={handleTabsChange} aria-label="basic tabs example" role='tablist'>
           <Tab label="Repositories" {...a11yProps(0)} role='tab' />
@@ -70,6 +85,7 @@ export default function RepositoryTabs() {
       </Box>
       <TabPanel value={tabsValue} index={0}>
         <RepositoryList items={repositories?.items ?? {}} languages={repositories?.items_ids_by_language} isEmptyMessage={"Ooops. We didn't find any repositories at the moment."} isLoading={isLoadingRepositories} isError={isErrorRepositories} />
+        {!isErrorRepositories && <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage || isFetching}>{!hasNextPage ? 'No more data' : 'Load More'}</Button>}
       </TabPanel>
       <TabPanel value={tabsValue} index={1}>
         <RepositoryList items={favoritedRepositories?.items ?? {}} languages={favoritedRepositories?.items_ids_by_language} isEmptyMessage={"There are not favorited repositories yet."} />

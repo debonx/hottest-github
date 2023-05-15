@@ -1,6 +1,7 @@
 import { Repository, RepositoryKeys } from '@/components/repository-list/repository-list.types';
 import axios from 'axios';
 import { useLocalStorageState } from 'react-localstorage-hooks';
+import mockData from './mock-response.json';
 
 export interface RepositoriesById {
     [key: number]: Repository;
@@ -11,6 +12,8 @@ export interface RepositoryResponse {
     incomplete_results: boolean;
     items: Repository[];
     items_ids_by_language?: Record<string, number[]>;
+    page?: number;
+    per_page?: number;
 }
 
 export interface RepositoryResponseProcessed extends Omit<RepositoryResponse, 'items'> {
@@ -46,14 +49,16 @@ export const getFormatteDateForParams = (date: Date) => {
     return formattedDate;
 };
 
-export const getDefaultParams = (): QueryParams => {
+export const getDefaultParams = (pageParam?: number): QueryParams => {
     const today = new Date();
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const defaultDate = getFormatteDateForParams(sevenDaysAgo);
     const params = {
         q: `created:${QueryOperator.GreaterThanOrEqual}${defaultDate}`,
         sort: QuerySort.Stars,
-        order: QueryOrder.Desc
+        order: QueryOrder.Desc,
+        per_page: 10,
+        page: pageParam ?? 1
     }
 
     return params;
@@ -89,8 +94,9 @@ export const getItemsIdsByLanguage = (items: Repository[]) => {
     return itemsIdsByLanguage;
 }
 
-export const fetchRepositories = async (): Promise<RepositoryResponseProcessed> => {
-    const defaulParams = getDefaultParams();
+export const fetchRepositories = async (extraParams?: any): Promise<RepositoryResponseProcessed> => {
+    const { pageParam } = extraParams;
+    const defaulParams = getDefaultParams(pageParam);
     const params = getParamsFromObjectToUrl(defaulParams);
     const res = await axios.get<RepositoryResponse>(
         `https://api.github.com/search/repositories?${params}`
@@ -103,6 +109,7 @@ export const fetchRepositories = async (): Promise<RepositoryResponseProcessed> 
         items_ids_by_language: getItemsIdsByLanguage(res.data.items),
         total_count: res.data.total_count,
         incomplete_results: res.data.incomplete_results,
+        page: Number(defaulParams.page) ?? 1,
     };
 };
 
